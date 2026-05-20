@@ -26,10 +26,11 @@ enum Difficulty {
 enum Command: String { // with rawValue
     case list = "list"
     case exit = "exit"
+    case game = "game" // add new command for game
 }
 // MARK - 2️⃣ Данные (массив с примерами)
 
-var commits: [Commit] = [
+var commits: [Commit] = [ // массив хранит все коммиты
     Commit(
         name: "feat",
         description: "new functionality",
@@ -57,7 +58,7 @@ var commits: [Commit] = [
     Commit(
         name: "docs",
         description: "documentation",
-        example: ["docs: add README", "docs: update comments"],
+        example: ["docs: add README", "docs: update comments", "docs: add meta-learning section"],
         emoji: "📝",
         category: ["basic", "documentation"],
         whenToUse: "when writing or updating documentation"
@@ -95,8 +96,37 @@ func parseCommand(_ prompt: String) -> Command? { // Получает " LiSt " (
     return Command(rawValue: cleaned)
 }
 
-gameLoop: while true {
-    print("\n📋 Commands: list, exit")
+func startGame() {
+    print("Game started")
+    
+    var score = 0
+    var questions = Array(commits) // словарь -> массив кортежей
+    questions.shuffle() // случайный порядок
+    
+    gameLoop: for commit in questions { // inner circle!
+        print("\n? \(commit.whenToUse)") // задаем вопрос
+        print("Your answer: ", terminator: "")
+        let input = readLine()? // получаем ответ
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        
+        if input.lowercased() == "stop" {
+            print("Game stopped")
+            break gameLoop // <- выход из цикла с меткой!
+        }
+        
+        if input.lowercased() == commit.name.lowercased() {
+            print("✅ Correct!")
+            score += 1
+        } else {
+            print("❌ Wrong. Correct answer: \(commit.name)")
+        }
+    }
+    print("\n🏆 Your score: \(score) out of \(commits.count)")
+    }
+
+// Основная программа - пошаговое описание алгоритма
+gameLoop: while true { // gameLoop +  break gameLoop -> метка для выхода из цикла
+    print("\n📋 Commands: list, exit, game")
     let input = readLine() ?? ""
     
     guard let command = parseCommand(input) else {
@@ -105,12 +135,14 @@ gameLoop: while true {
     }
 
     switch command {
-    case .exit:
-        print("By, bro!")
-        break gameLoop
-    case .list:
+    case .game:
+        startGame()
+    case .list: // Программа выводит коммиты в команде .list.
         for commit in commits {
             print("\(commit.emoji) \(commit.name) - \(commit.description)")
         }
+    case .exit:
+        print("By, bro!")
+        break gameLoop
     }
 }
